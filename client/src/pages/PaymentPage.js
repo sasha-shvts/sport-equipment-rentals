@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import API_URL from "../api";
+import React, { useEffect, useState, useCallback } from "react";
+import api from "../api";
 
 function PaymentPage({ user }) {
   const [cartItems, setCartItems] = useState([]);
@@ -11,7 +11,7 @@ function PaymentPage({ user }) {
   const [cardCvv, setCardCvv] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchCartItems = async () => {
+  const fetchCartItems = useCallback(async () => {
     const token = localStorage.getItem("authToken");
 
     if (!user || !token) {
@@ -24,17 +24,14 @@ function PaymentPage({ user }) {
     try {
       setLoading(true);
 
-      const response = await fetch(`${API_URL}/api/rentals?status=cart`, {
+      const response = await api.get("/api/rentals", {
+        params: { status: "cart" },
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Не вдалося завантажити кошик");
-      }
+      const data = response.data;
 
       const preparedItems = data.map((item) => {
         const start = new Date(item.startDate);
@@ -57,15 +54,19 @@ function PaymentPage({ user }) {
       setCartItems(preparedItems);
     } catch (err) {
       console.error("Помилка завантаження кошика:", err);
-      alert(err.message || "Не вдалося завантажити кошик.");
+      alert(
+        err.response?.data?.error ||
+          err.message ||
+          "Не вдалося завантажити кошик."
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchCartItems();
-  }, [user]);
+  }, [fetchCartItems]);
 
   useEffect(() => {
     const sum = cartItems.reduce(
@@ -84,23 +85,26 @@ function PaymentPage({ user }) {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/rentals/${id}`, {
-        method: "DELETE",
+      const response = await api.delete(`/api/rentals/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (!response.ok) {
+      if (!response.status.toString().startsWith("2")) {
         throw new Error(data.error || "Не вдалося видалити товар із кошика");
       }
 
       setCartItems((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
       console.error("Помилка видалення з кошика:", err);
-      alert(err.message || "Не вдалося видалити товар із кошика.");
+      alert(
+        err.response?.data?.error ||
+          err.message ||
+          "Не вдалося видалити товар із кошика."
+      );
     }
   };
 
@@ -127,16 +131,19 @@ function PaymentPage({ user }) {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/rentals/checkout`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.post(
+        "/api/rentals/checkout",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (!response.ok) {
+      if (!response.status.toString().startsWith("2")) {
         throw new Error(data.error || "Не вдалося завершити оплату");
       }
 
@@ -151,7 +158,11 @@ function PaymentPage({ user }) {
       setAmount(0);
     } catch (err) {
       console.error("Помилка під час оплати:", err);
-      alert(err.message || "Не вдалося завершити оплату.");
+      alert(
+        err.response?.data?.error ||
+          err.message ||
+          "Не вдалося завершити оплату."
+      );
     }
   };
 
