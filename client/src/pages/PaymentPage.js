@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import API_URL from "../api";
 
 function PaymentPage({ user }) {
   const [cartItems, setCartItems] = useState([]);
@@ -23,14 +24,11 @@ function PaymentPage({ user }) {
     try {
       setLoading(true);
 
-      const response = await fetch(
-        "http://localhost:5000/api/rentals?status=cart",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/api/rentals?status=cart`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const data = await response.json();
 
@@ -43,8 +41,11 @@ function PaymentPage({ user }) {
         const end = new Date(item.endDate);
         const msPerDay = 1000 * 60 * 60 * 24;
         const diff = end - start;
+
         const days = diff >= 0 ? Math.floor(diff / msPerDay) + 1 : 0;
-        const totalPrice = (Number(item.rentalPrice) || 0) * days;
+
+        const totalPrice =
+          Number(item.totalPrice) || (Number(item.rentalPrice) || 0) * days;
 
         return {
           ...item,
@@ -83,7 +84,7 @@ function PaymentPage({ user }) {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/rentals/${id}`, {
+      const response = await fetch(`${API_URL}/api/rentals/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -126,15 +127,12 @@ function PaymentPage({ user }) {
     }
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/rentals/checkout",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/api/rentals/checkout`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const data = await response.json();
 

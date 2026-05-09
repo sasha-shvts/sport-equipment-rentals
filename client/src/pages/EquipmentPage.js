@@ -3,6 +3,7 @@ import Flatpickr from "react-flatpickr";
 import Toast from "../components/Toast";
 import { collection, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../firebase";
+import API_URL from "../api";
 
 function normalizeDate(dateStr) {
   const date = new Date(`${dateStr}T00:00:00`);
@@ -56,7 +57,6 @@ function EquipmentPage({ user }) {
 
   const pickersRef = useRef({});
 
-  // завантаження обладнання з Firestore
   useEffect(() => {
     const fetchEquipment = async () => {
       try {
@@ -74,7 +74,6 @@ function EquipmentPage({ user }) {
     fetchEquipment();
   }, []);
 
-  // завантаження коментарів з Firestore
   useEffect(() => {
     const fetchComments = async () => {
       try {
@@ -128,7 +127,7 @@ function EquipmentPage({ user }) {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/rentals", {
+      const response = await fetch(`${API_URL}/api/rentals`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

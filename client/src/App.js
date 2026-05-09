@@ -12,6 +12,7 @@ function ProtectedRoute({ user, children }) {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
   return children;
 }
 
@@ -19,9 +20,9 @@ function App() {
   const [user, setUser] = useState(null);
   const [initializing, setInitializing] = useState(true);
 
-  // зчитуємо користувача з localStorage один раз при старті
   useEffect(() => {
     const storedUser = localStorage.getItem("authUser");
+
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
@@ -31,8 +32,15 @@ function App() {
     } else {
       setUser(null);
     }
+
     setInitializing(false);
   }, []);
+
+  const handleAuth = (authData) => {
+    localStorage.setItem("authToken", authData.token);
+    localStorage.setItem("authUser", JSON.stringify(authData.user));
+    setUser(authData.user);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
@@ -110,34 +118,12 @@ function App() {
 
           <Route
             path="/register"
-            element={
-              <RegisterPage
-                onAuth={(authData) => {
-                  localStorage.setItem("authToken", authData.token);
-                  localStorage.setItem(
-                    "authUser",
-                    JSON.stringify(authData.user)
-                  );
-                  setUser(authData.user);
-                }}
-              />
-            }
+            element={<RegisterPage onAuth={handleAuth} />}
           />
 
           <Route
             path="/login"
-            element={
-              <LoginPage
-                onAuth={(authData) => {
-                  localStorage.setItem("authToken", authData.token);
-                  localStorage.setItem(
-                    "authUser",
-                    JSON.stringify(authData.user)
-                  );
-                  setUser(authData.user);
-                }}
-              />
-            }
+            element={<LoginPage onAuth={handleAuth} />}
           />
 
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import API_URL from "../api";
 
 function normalizeDate(dateStr) {
   if (!dateStr) return new Date();
@@ -48,7 +49,7 @@ function RentalsPage({ user }) {
       const max = maxPrice !== "" ? maxPrice : 100000;
 
       const response = await fetch(
-        `http://localhost:5000/api/rentals?status=confirmed&minPrice=${min}&maxPrice=${max}`,
+        `${API_URL}/api/rentals?status=confirmed&minPrice=${min}&maxPrice=${max}`,
         {
           method: "GET",
           headers: {
@@ -122,15 +123,12 @@ function RentalsPage({ user }) {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/rentals/${rental.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/api/rentals/${rental.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const data = await response.json();
 
@@ -150,7 +148,6 @@ function RentalsPage({ user }) {
       <section id="my-rentals">
         <h2>Мої оренди</h2>
 
-        {/* Фільтр за ціною оренди */}
         <div className="rentals-filter">
           <h3 className="rentals-filter__title">Фільтр за ціною оренди</h3>
           <div className="rentals-filter__controls">
@@ -198,12 +195,16 @@ function RentalsPage({ user }) {
               let bgClass = "";
               if (nameLower.includes("велосипед")) bgClass = "rental-bike";
               else if (nameLower.includes("теніс")) bgClass = "rental-tennis";
-              else if (nameLower.includes("сноуборд")) bgClass = "rental-snowboard";
-              else if (nameLower.includes("роликов")) bgClass = "rental-rollers";
+              else if (nameLower.includes("сноуборд"))
+                bgClass = "rental-snowboard";
+              else if (nameLower.includes("роликов"))
+                bgClass = "rental-rollers";
               else if (nameLower.includes("sup")) bgClass = "rental-sup";
-              else if (nameLower.includes("кемпінг")) bgClass = "rental-camping";
+              else if (nameLower.includes("кемпінг"))
+                bgClass = "rental-camping";
               else if (nameLower.includes("лиж")) bgClass = "rental-skis";
-              else if (nameLower.includes("трекінг")) bgClass = "rental-trekking";
+              else if (nameLower.includes("трекінг"))
+                bgClass = "rental-trekking";
               else if (nameLower.includes("каяк")) bgClass = "rental-kayak";
 
               const end = normalizeDate(rental.end);
@@ -223,7 +224,9 @@ function RentalsPage({ user }) {
 
               const backgroundStyle = rental.img
                 ? {
-                    backgroundImage: `url(${process.env.PUBLIC_URL + rental.img})`,
+                    backgroundImage: `url(${
+                      process.env.PUBLIC_URL + rental.img
+                    })`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",

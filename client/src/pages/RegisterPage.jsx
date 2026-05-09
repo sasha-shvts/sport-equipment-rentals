@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import API_URL from "../api";
 
 function RegisterPage({ onAuth }) {
   const [email, setEmail] = useState("");
@@ -19,7 +20,7 @@ function RegisterPage({ onAuth }) {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,7 +55,8 @@ function RegisterPage({ onAuth }) {
         <div className="auth-top">
           <h2>Реєстрація</h2>
           <p>
-            Створіть акаунт, щоб оформлювати оренду і переглядати свої замовлення.
+            Створіть акаунт, щоб оформлювати оренду і переглядати свої
+            замовлення.
           </p>
         </div>
 
@@ -114,7 +116,7 @@ function RegisterPage({ onAuth }) {
         </form>
 
         <div className="auth-bottom">
-          Вже маєте акаунт?
+          Вже маєте акаунт?{" "}
           <Link to="/login" className="auth-link">
             Увійти
           </Link>
