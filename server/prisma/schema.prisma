@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -26,5 +27,5 @@ model Rental {
   status      String   @default("cart")
   img         String?
   createdAt   DateTime @default(now())
-  totalPrice  Float?   // ← nullable
+  totalPrice  Float?
 }
