@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import API_URL from "../api";
+import api from "../api";
 
 function LoginPage({ onAuth }) {
   const [email, setEmail] = useState("");
@@ -13,32 +13,32 @@ function LoginPage({ onAuth }) {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+      const response = await api.post("/api/auth/login", {
+        email,
+        password,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Не вдалося увійти");
-        return;
-      }
+      const data = response.data;
 
       if (onAuth) {
         onAuth(data);
       } else {
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("authUser", JSON.stringify(data.user));
+        if (data?.token) {
+          localStorage.setItem("authToken", data.token);
+        }
+        if (data?.user) {
+          localStorage.setItem("authUser", JSON.stringify(data.user));
+        }
       }
 
       navigate("/");
     } catch (err) {
       console.error("Login error:", err);
-      setError("Помилка з’єднання з сервером");
+      setError(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Помилка з’єднання з сервером"
+      );
     }
   };
 

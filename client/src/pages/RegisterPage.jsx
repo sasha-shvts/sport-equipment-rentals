@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import API_URL from "../api";
+import api from "../api";
 
 function RegisterPage({ onAuth }) {
   const [email, setEmail] = useState("");
@@ -20,32 +20,33 @@ function RegisterPage({ onAuth }) {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password, name }),
+      const response = await api.post("/api/auth/register", {
+        email,
+        password,
+        name,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Не вдалося зареєструватися");
-        return;
-      }
+      const data = response.data;
 
       if (onAuth) {
         onAuth(data);
       } else {
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("authUser", JSON.stringify(data.user));
+        if (data?.token) {
+          localStorage.setItem("authToken", data.token);
+        }
+        if (data?.user) {
+          localStorage.setItem("authUser", JSON.stringify(data.user));
+        }
       }
 
       navigate("/");
     } catch (err) {
       console.error("Register error:", err);
-      setError("Помилка з’єднання з сервером");
+      setError(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Помилка з’єднання з сервером"
+      );
     }
   };
 
