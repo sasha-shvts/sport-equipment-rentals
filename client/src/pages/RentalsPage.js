@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import API_URL from "../api";
+import api from "../api";
 
 function normalizeDate(dateStr) {
   if (!dateStr) return new Date();
@@ -48,21 +48,16 @@ function RentalsPage({ user }) {
       const min = minPrice !== "" ? minPrice : 0;
       const max = maxPrice !== "" ? maxPrice : 100000;
 
-      const response = await fetch(
-        `${API_URL}/api/rentals?status=confirmed&minPrice=${min}&maxPrice=${max}`,
+      const response = await api.get(
+        `/api/rentals?status=confirmed&minPrice=${min}&maxPrice=${max}`,
         {
-          method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Не вдалося отримати оренди");
-      }
+      const data = response.data;
 
       const userRentals = data.map((item) => ({
         id: item.id,
@@ -76,7 +71,11 @@ function RentalsPage({ user }) {
       setRentals(userRentals);
     } catch (err) {
       console.error("Помилка читання оренд із сервера:", err);
-      alert(err.message || "Не вдалося отримати оренди.");
+      alert(
+        err.response?.data?.error ||
+          err.message ||
+          "Не вдалося отримати оренди."
+      );
     } finally {
       setLoading(false);
     }
@@ -123,23 +122,26 @@ function RentalsPage({ user }) {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/rentals/${rental.id}`, {
-        method: "DELETE",
+      const response = await api.delete(`/api/rentals/${rental.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (!response.ok) {
-        throw new Error(data.error || "Не вдалося видалити оренду");
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
       setRentals((prev) => prev.filter((r) => r.id !== rental.id));
     } catch (err) {
       console.error("Помилка видалення оренди:", err);
-      alert(err.message || "Не вдалося скасувати оренду.");
+      alert(
+        err.response?.data?.error ||
+          err.message ||
+          "Не вдалося скасувати оренду."
+      );
     }
   };
 
@@ -244,7 +246,9 @@ function RentalsPage({ user }) {
                   </header>
 
                   {showBadge && (
-                    <span className="ending-today">Закінчується сьогодні</span>
+                    <span className="ending-today">
+                      Закінчується сьогодні
+                    </span>
                   )}
 
                   <p className="rental-date">

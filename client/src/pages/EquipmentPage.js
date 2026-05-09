@@ -3,7 +3,7 @@ import Flatpickr from "react-flatpickr";
 import Toast from "../components/Toast";
 import { collection, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../firebase";
-import API_URL from "../api";
+import api from "../api";
 
 function normalizeDate(dateStr) {
   const date = new Date(`${dateStr}T00:00:00`);
@@ -127,27 +127,24 @@ function EquipmentPage({ user }) {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/rentals`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const response = await api.post(
+        "/api/rentals",
+        {
           equipment: title,
           category: item.sportType || "Інше",
           rentalPrice: item.price,
           startDate: `${startStr}T00:00:00.000Z`,
           endDate: `${endStr}T00:00:00.000Z`,
           img: item.img || null,
-        }),
-      });
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Не вдалося додати в кошик");
-      }
+      const data = response.data;
 
       const cleanTitle = item.name;
       setRentStats((prev) => ({
@@ -173,7 +170,11 @@ function EquipmentPage({ user }) {
       console.log("Додано в кошик на сервері:", data);
     } catch (err) {
       console.error("Помилка додавання в кошик на сервер:", err);
-      alert(err.message || "Не вдалося додати в кошик.");
+      alert(
+        err.response?.data?.error ||
+          err.message ||
+          "Не вдалося додати в кошик."
+      );
     }
   };
 
@@ -238,7 +239,8 @@ function EquipmentPage({ user }) {
   };
 
   const deleteComment = async (id) => {
-    if (!window.confirm("Ви впевнені, що хочете видалити цей коментар?")) return;
+    if (!window.confirm("Ви впевнені, що хочете видалити цей коментар?"))
+      return;
 
     try {
       await deleteDoc(doc(db, "comments", id));
