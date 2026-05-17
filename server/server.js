@@ -1,3 +1,5 @@
+require("dotenv").config(); 
+
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
@@ -9,8 +11,10 @@ const app = express();
 const prisma = new PrismaClient();
 const PORT = 5000;
 
-// Для лабораторної можна так, але краще потім винести в .env
-const JWT_SECRET = "super_secret_for_lab5_only";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in .env");
+}
 
 app.use(cors());
 app.use(express.json());
@@ -18,7 +22,6 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // ====================== AUTH ======================
 
-// POST /api/auth/register
 app.post("/api/auth/register", async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -73,7 +76,6 @@ app.post("/api/auth/register", async (req, res) => {
   }
 });
 
-// POST /api/auth/login
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -99,7 +101,7 @@ app.post("/api/auth/login", async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "14d" }
     );
 
     res.json({
@@ -128,7 +130,7 @@ function authMiddleware(req, res, next) {
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.user = payload; // { id, email }
+    req.user = payload; 
     next();
   } catch (err) {
     return res
@@ -137,7 +139,6 @@ function authMiddleware(req, res, next) {
   }
 }
 
-// ====================== TEST ======================
 
 app.get("/api/message", (req, res) => {
   res.json({ message: "Сервер працює успішно!" });
@@ -242,12 +243,12 @@ app.post("/api/rentals", authMiddleware, async (req, res) => {
         userId,
         equipment,
         category,
-        rentalPrice: parsedPrice, // ціна за день
+        rentalPrice: parsedPrice, 
         startDate: start,
         endDate: end,
         status: "cart",
         img: img || null,
-        totalPrice,               // сума за всі дні
+        totalPrice,               
       },
     });
 
