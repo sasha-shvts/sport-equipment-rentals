@@ -59,7 +59,7 @@ app.post("/api/auth/register", async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "14d" }
     );
 
     res.status(201).json({
